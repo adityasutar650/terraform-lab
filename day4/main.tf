@@ -9,18 +9,30 @@ terraform {
 
 provider "docker" {}
 
-module "nginx1" {
+variable "container_config" {
+  description = "List of container configurations"
+  type = list(object({
+    name = string
+    port = number
+  }))
+}
+
+module "nginx_containers" {
   source = "../modules/nginx_container"
 
-  container_name = "nginx1"
-  container_port = 8081
+  for_each = {
+    for container in var.container_config :
+    container.name => container
+  }
+
+  container_name = each.value.name
+  container_port = each.value.port
   image_name     = "nginx:latest"
 }
 
-module "nginx2" {
-  source = "../modules/nginx_container"
-
-  container_name = "nginx2"
-  container_port = 8082
-  image_name     = "nginx:latest"
+output "container_urls" {
+  value = [
+    for container in var.container_config :
+    "http://localhost:${container.port}"
+  ]
 }
