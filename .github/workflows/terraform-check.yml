@@ -1,0 +1,29 @@
+name: Terraform CI
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        dir: [day1, day2, day3, day4]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Run Terraform
+        working-directory: ${{ matrix.dir }}
+        run: |
+          terraform init
+          terraform fmt -check
+          terraform validate
+          terraform plan
